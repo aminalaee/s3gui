@@ -16,6 +16,8 @@ class App extends StatelessWidget {
       title: 'S3 GUI',
       theme: ThemeData(
         fontFamily: 'Balsamiq',
+        appBarTheme: AppBarTheme(color: Colors.blueGrey[600]),
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blueGrey),
       ),
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
