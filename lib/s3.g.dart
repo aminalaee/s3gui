@@ -56,6 +56,15 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.listObjects(bucket, prefix));
   }
 
+  late final _$createNewDirectoryAsyncAction =
+      AsyncAction('S3Base.createNewDirectory', context: context);
+
+  @override
+  Future<void> createNewDirectory(String bucket, String path) {
+    return _$createNewDirectoryAsyncAction
+        .run(() => super.createNewDirectory(bucket, path));
+  }
+
   @override
   String toString() {
     return '''

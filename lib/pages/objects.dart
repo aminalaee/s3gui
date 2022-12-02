@@ -27,7 +27,32 @@ class _ObjectsPageState extends State<ObjectsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.bucket)),
+      appBar: AppBar(
+        title: Text(widget.bucket),
+        actions: [
+          PopupMenuButton(
+            tooltip: 'New',
+            icon: const Icon(Icons.add),
+            onSelected: (item) async {
+              if (item == 1) {
+                //
+              } else if (item == 2) {
+                _s3.createNewDirectory(widget.bucket, widget.prefix);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: 1,
+                child: Text('Upload files'),
+              ),
+              const PopupMenuItem(
+                value: 2,
+                child: Text('New folder'),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
@@ -88,8 +113,9 @@ class _ObjectsPageState extends State<ObjectsPage> {
   List<DataRow> buildRows(ListObjectsResult result) {
     final prefixRows = List<DataRow>.generate(result.prefixes.length,
         (index) => buildPrefixRow(result.prefixes[index]));
-    final objectRows = List<DataRow>.generate(result.objects.length,
-        (index) => buildObjectRow(result.objects[index]));
+    final objects = result.objects.where((object) => object.size! > 0).toList();
+    final objectRows = List<DataRow>.generate(
+        objects.length, (index) => buildObjectRow(objects[index]));
     return prefixRows + objectRows;
   }
 
@@ -102,7 +128,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             child: ListTile(
               leading: Icon(Icons.folder, color: Colors.blue[400]),
               title: Text(
-                prefix,
+                prefix.replaceAll(widget.prefix, ''),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
@@ -150,7 +176,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             child: ListTile(
               leading: Icon(Icons.description, color: Colors.blue[400]),
               title: Text(
-                object.key!,
+                object.key!.replaceAll(widget.prefix, ''),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
