@@ -18,6 +18,7 @@ dependencies:
   flutter_mobx: ^2.0.6+5
   timeago: ^3.3.0
   shared_preferences: ^2.0.15
+  file_picker: ^5.2.3
 
 dev_dependencies:
   flutter_test:

@@ -22,4 +22,11 @@ abstract class S3Base with Store {
   Future<void> listObjects(String bucket, String prefix) async {
     objects = Client().c.listObjects(bucket, prefix: prefix);
   }
+
+  @action
+  Future<void> createNewDirectory(String bucket, String prefix) async {
+    final path = '${prefix}new_folder/';
+    await Client().c.putObject(bucket, path, const Stream.empty(), size: 0);
+    await listObjects(bucket, prefix);
+  }
 }

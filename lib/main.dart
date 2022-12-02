@@ -27,7 +27,7 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blueGrey),
       ),
       debugShowCheckedModeBanner: false,
-      home: isReady!
+      home: isReady
           ? HomePage(sharedPreferences: sharedPreferences)
           : SettingsPage(sharedPreferences: sharedPreferences),
     );
