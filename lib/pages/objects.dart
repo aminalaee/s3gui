@@ -17,11 +17,18 @@ class ObjectsPage extends StatefulWidget {
 
 class _ObjectsPageState extends State<ObjectsPage> {
   final _s3 = S3();
+  final _newDirectoryController = TextEditingController();
 
   @override
   void initState() {
     _s3.listObjects(widget.bucket, widget.prefix);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _newDirectoryController.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,7 +44,10 @@ class _ObjectsPageState extends State<ObjectsPage> {
               if (item == 1) {
                 //
               } else if (item == 2) {
-                _s3.createNewDirectory(widget.bucket, widget.prefix);
+                showDialog(
+                  context: context,
+                  builder: ((context) => showCreateDirectoryDialog()),
+                );
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -47,7 +57,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
               ),
               const PopupMenuItem(
                 value: 2,
-                child: Text('New folder'),
+                child: Text('New Directory'),
               ),
             ],
           ),
@@ -200,6 +210,32 @@ class _ObjectsPageState extends State<ObjectsPage> {
               style: const TextStyle(fontSize: 16),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget showCreateDirectoryDialog() {
+    return AlertDialog(
+      title: const Text('Choose directory name'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: [
+            TextFormField(
+              controller: _newDirectoryController,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Save'),
+          onPressed: () {
+            _s3.createNewDirectory(
+                widget.bucket, widget.prefix, _newDirectoryController.text);
+            Navigator.of(context).pop();
+            _newDirectoryController.clear();
+          },
         ),
       ],
     );

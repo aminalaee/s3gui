@@ -24,8 +24,9 @@ abstract class S3Base with Store {
   }
 
   @action
-  Future<void> createNewDirectory(String bucket, String prefix) async {
-    final path = '${prefix}new_folder/';
+  Future<void> createNewDirectory(
+      String bucket, String prefix, String directory) async {
+    final path = '$prefix$directory/';
     await Client().c.putObject(bucket, path, const Stream.empty(), size: 0);
     await listObjects(bucket, prefix);
   }
