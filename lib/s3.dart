@@ -30,4 +30,30 @@ abstract class S3Base with Store {
     await Client().c.putObject(bucket, path, const Stream.empty(), size: 0);
     await listObjects(bucket, prefix);
   }
+
+  @action
+  Future<void> deleteObject(String bucket, String prefix, String key) async {
+    final path = '$prefix$key';
+    await Client().c.removeObject(bucket, path);
+    await listObjects(bucket, prefix);
+  }
+
+  @action
+  Future<void> deleteDirectory(String bucket, String prefix, String key) async {
+    final path = '$prefix$key';
+    await _removeDirectory(bucket, path);
+    await listObjects(bucket, prefix);
+  }
+
+  Future<void> _removeDirectory(String bucket, String prefix) async {
+    final objs = Client().c.listObjects(bucket, prefix: prefix);
+    await for (final objResult in objs) {
+      for (final obj in objResult.objects) {
+        await Client().c.removeObject(bucket, obj.key!); // Remove files
+      }
+      for (final p in objResult.prefixes) {
+        await _removeDirectory(bucket, p); // Remove directories
+      }
+    }
+  }
 }
