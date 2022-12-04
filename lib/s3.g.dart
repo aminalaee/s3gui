@@ -66,6 +66,24 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.createNewDirectory(bucket, prefix, directory));
   }
 
+  late final _$deleteObjectAsyncAction =
+      AsyncAction('S3Base.deleteObject', context: context);
+
+  @override
+  Future<void> deleteObject(String bucket, String prefix, String key) {
+    return _$deleteObjectAsyncAction
+        .run(() => super.deleteObject(bucket, prefix, key));
+  }
+
+  late final _$deleteDirectoryAsyncAction =
+      AsyncAction('S3Base.deleteDirectory', context: context);
+
+  @override
+  Future<void> deleteDirectory(String bucket, String prefix, String key) {
+    return _$deleteDirectoryAsyncAction
+        .run(() => super.deleteDirectory(bucket, prefix, key));
+  }
+
   @override
   String toString() {
     return '''

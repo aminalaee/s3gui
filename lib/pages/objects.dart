@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:minio/models.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:s3gui/utils/utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:s3gui/s3.dart';
-import 'package:s3gui/filesize.dart';
+import 'package:s3gui/utils/filesize.dart';
 
 class ObjectsPage extends StatefulWidget {
   const ObjectsPage({super.key, required this.bucket, required this.prefix});
@@ -115,6 +116,15 @@ class _ObjectsPageState extends State<ObjectsPage> {
             ),
           ),
         ),
+        DataColumn(
+          label: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
       ],
       rows: buildRows(result),
     );
@@ -138,7 +148,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             child: ListTile(
               leading: Icon(Icons.folder, color: Colors.blue[400]),
               title: Text(
-                prefix.replaceAll(widget.prefix, ''),
+                normalizePath(prefix, widget.prefix),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
@@ -173,6 +183,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             ),
           ),
         ),
+        prefixActions(prefix),
       ],
     );
   }
@@ -186,7 +197,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             child: ListTile(
               leading: Icon(Icons.description, color: Colors.blue[400]),
               title: Text(
-                object.key!.replaceAll(widget.prefix, ''),
+                normalizePath(object.key!, widget.prefix),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
@@ -211,6 +222,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             ),
           ),
         ),
+        objectActions(object),
       ],
     );
   }
@@ -238,6 +250,46 @@ class _ObjectsPageState extends State<ObjectsPage> {
           },
         ),
       ],
+    );
+  }
+
+  DataCell objectActions(Object object) {
+    return DataCell(
+      PopupMenuButton(
+        tooltip: 'Manage',
+        onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteObject(widget.bucket, widget.prefix,
+                normalizePath(object.key!, widget.prefix));
+          }
+        },
+        itemBuilder: (BuildContext context) => [
+          const PopupMenuItem(
+            value: 1,
+            child: Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  DataCell prefixActions(String prefix) {
+    return DataCell(
+      PopupMenuButton(
+        tooltip: 'Manage',
+        onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteDirectory(widget.bucket, widget.prefix,
+                normalizePath(prefix, widget.prefix));
+          }
+        },
+        itemBuilder: (BuildContext context) => [
+          const PopupMenuItem(
+            value: 1,
+            child: Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }
