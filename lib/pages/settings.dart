@@ -29,11 +29,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final s3EndpointURL = widget.sharedPreferences.getString(s3EndpointURLTag);
-    endpointUrlController.text = s3EndpointURL!;
+    endpointUrlController.text = s3EndpointURL ?? '';
     final s3AccessKey = widget.sharedPreferences.getString(s3AccessKeyTag);
-    accessKeyController.text = s3AccessKey!;
+    accessKeyController.text = s3AccessKey ?? '';
     final s3SecretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
-    secretKeyController.text = s3SecretKey!;
+    secretKeyController.text = s3SecretKey ?? '';
     final navigator = Navigator.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -48,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 controller: endpointUrlController,
                 decoration: const InputDecoration(
                   labelText: 'Endpoint URL',
-                  hintText: 'eg. https://s3.amazon.com',
+                  hintText: 'eg. s3.amazon.com',
                   enabledBorder: UnderlineInputBorder(),
                 ),
                 validator: (value) {
