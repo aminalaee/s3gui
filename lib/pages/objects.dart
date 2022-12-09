@@ -69,6 +69,9 @@ class _ObjectsPageState extends State<ObjectsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 15),
+            buildBreadCrumbs(),
+            const SizedBox(height: 25),
             Observer(
               builder: (_) => StreamBuilder(
                 stream: _s3.objects,
@@ -290,6 +293,26 @@ class _ObjectsPageState extends State<ObjectsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildBreadCrumbs() {
+    final breadCrumbs = <Widget>[];
+    for (var prefix in widget.prefix.split('/')) {
+      if (prefix.isNotEmpty) {
+        breadCrumbs.add(const SizedBox(width: 5));
+        breadCrumbs.add(const Text('/'));
+        breadCrumbs.add(const SizedBox(width: 5));
+        breadCrumbs.add(Text(prefix));
+      }
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(widget.bucket),
+        ...breadCrumbs,
+      ],
     );
   }
 }
