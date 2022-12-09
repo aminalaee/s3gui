@@ -1,4 +1,4 @@
-package com.example.s3gui
+package com.github.aminalaee.s3gui
 
 import io.flutter.embedding.android.FlutterActivity
 
