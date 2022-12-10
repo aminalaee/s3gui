@@ -246,9 +246,10 @@ class _ObjectsPageState extends State<ObjectsPage> {
       actions: [
         TextButton(
           child: const Text('Save'),
-          onPressed: () {
-            _s3.createNewDirectory(
+          onPressed: () async {
+            await _s3.createNewDirectory(
                 widget.bucket, widget.prefix, _newDirectoryController.text);
+            await _s3.listObjects(widget.bucket, widget.prefix);
             Navigator.of(context).pop();
             _newDirectoryController.clear();
           },
@@ -265,6 +266,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
           if (item == 1) {
             await _s3.deleteObject(widget.bucket, widget.prefix,
                 normalizePath(object.key!, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
           }
         },
         itemBuilder: (BuildContext context) => [
@@ -285,6 +287,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
           if (item == 1) {
             await _s3.deleteDirectory(widget.bucket, widget.prefix,
                 normalizePath(prefix, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
           }
         },
         itemBuilder: (BuildContext context) => [
