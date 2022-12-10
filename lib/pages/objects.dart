@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:minio/models.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -43,7 +44,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
             icon: const Icon(Icons.add),
             onSelected: (item) async {
               if (item == 1) {
-                //
+                await handleFileUpload();
               } else if (item == 2) {
                 showDialog(
                   context: context,
@@ -314,5 +315,17 @@ class _ObjectsPageState extends State<ObjectsPage> {
         ...breadCrumbs,
       ],
     );
+  }
+
+  Future<void> handleFileUpload() async {
+    final pick = await FilePicker.platform
+        .pickFiles(allowMultiple: true, withData: true);
+    if (pick != null) {
+      for (var file in pick.files) {
+        final path = widget.prefix + file.name;
+        await _s3.uploadFile(widget.bucket, path, file);
+        await _s3.listObjects(widget.bucket, widget.prefix);
+      }
+    }
   }
 }

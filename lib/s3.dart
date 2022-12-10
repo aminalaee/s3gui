@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
@@ -29,6 +30,11 @@ abstract class S3Base with Store {
     final path = '$prefix$directory/';
     await Client().c.putObject(bucket, path, const Stream.empty(), size: 0);
     await listObjects(bucket, prefix);
+  }
+
+  @action
+  Future<void> uploadFile(String bucket, String path, PlatformFile file) async {
+    await Client().c.putObject(bucket, path, Stream.value(file.bytes!));
   }
 
   @action
