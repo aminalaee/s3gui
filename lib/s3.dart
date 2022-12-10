@@ -29,7 +29,6 @@ abstract class S3Base with Store {
       String bucket, String prefix, String directory) async {
     final path = '$prefix$directory/';
     await Client().c.putObject(bucket, path, const Stream.empty(), size: 0);
-    await listObjects(bucket, prefix);
   }
 
   @action
@@ -41,14 +40,12 @@ abstract class S3Base with Store {
   Future<void> deleteObject(String bucket, String prefix, String key) async {
     final path = '$prefix$key';
     await Client().c.removeObject(bucket, path);
-    await listObjects(bucket, prefix);
   }
 
   @action
   Future<void> deleteDirectory(String bucket, String prefix, String key) async {
     final path = '$prefix$key';
     await _removeDirectory(bucket, path);
-    await listObjects(bucket, prefix);
   }
 
   Future<void> _removeDirectory(String bucket, String prefix) async {
