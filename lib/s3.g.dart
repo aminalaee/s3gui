@@ -66,6 +66,15 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.createNewDirectory(bucket, prefix, directory));
   }
 
+  late final _$uploadFileAsyncAction =
+      AsyncAction('S3Base.uploadFile', context: context);
+
+  @override
+  Future<void> uploadFile(String bucket, String path, PlatformFile file) {
+    return _$uploadFileAsyncAction
+        .run(() => super.uploadFile(bucket, path, file));
+  }
+
   late final _$deleteObjectAsyncAction =
       AsyncAction('S3Base.deleteObject', context: context);
 
