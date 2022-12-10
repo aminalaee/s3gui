@@ -17,19 +17,28 @@ class ObjectsPage extends StatefulWidget {
   State<ObjectsPage> createState() => _ObjectsPageState();
 }
 
-class _ObjectsPageState extends State<ObjectsPage> {
+class _ObjectsPageState extends State<ObjectsPage>
+    with TickerProviderStateMixin {
   final _s3 = S3();
   final _newDirectoryController = TextEditingController();
+  late AnimationController _progressController;
 
   @override
   void initState() {
     _s3.listObjects(widget.bucket, widget.prefix);
+    _progressController = AnimationController(
+      vsync: this,
+      value: -1,
+    )..addListener(() {
+        setState(() {});
+      });
     super.initState();
   }
 
   @override
   void dispose() {
     _newDirectoryController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -73,6 +82,16 @@ class _ObjectsPageState extends State<ObjectsPage> {
             const SizedBox(height: 15),
             buildBreadCrumbs(),
             const SizedBox(height: 25),
+            Opacity(
+              opacity: _progressController.value > 0 &&
+                      _progressController.value != 1
+                  ? 1
+                  : 0,
+              child: LinearProgressIndicator(
+                value: _progressController.value,
+                semanticsLabel: 'Loading',
+              ),
+            ),
             Observer(
               builder: (_) => StreamBuilder(
                 stream: _s3.objects,
@@ -326,7 +345,7 @@ class _ObjectsPageState extends State<ObjectsPage> {
     if (pick != null) {
       for (var file in pick.files) {
         final path = widget.prefix + file.name;
-        await _s3.uploadFile(widget.bucket, path, file);
+        await _s3.uploadFile(widget.bucket, path, file, _progressController);
         await _s3.listObjects(widget.bucket, widget.prefix);
       }
     }

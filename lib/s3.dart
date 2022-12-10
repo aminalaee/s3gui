@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
@@ -32,8 +33,17 @@ abstract class S3Base with Store {
   }
 
   @action
-  Future<void> uploadFile(String bucket, String path, PlatformFile file) async {
-    await Client().c.putObject(bucket, path, Stream.value(file.bytes!));
+  Future<void> uploadFile(String bucket, String path, PlatformFile file,
+      AnimationController controller) async {
+    controller.value = 1;
+    await Client().c.putObject(
+      bucket,
+      path,
+      Stream.value(file.bytes!),
+      onProgress: (bytes) {
+        controller.value = bytes / file.size;
+      },
+    );
   }
 
   @action
