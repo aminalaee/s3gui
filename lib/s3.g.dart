@@ -70,9 +70,10 @@ mixin _$S3 on S3Base, Store {
       AsyncAction('S3Base.uploadFile', context: context);
 
   @override
-  Future<void> uploadFile(String bucket, String path, PlatformFile file) {
+  Future<void> uploadFile(String bucket, String path, PlatformFile file,
+      AnimationController controller) {
     return _$uploadFileAsyncAction
-        .run(() => super.uploadFile(bucket, path, file));
+        .run(() => super.uploadFile(bucket, path, file, controller));
   }
 
   late final _$deleteObjectAsyncAction =
