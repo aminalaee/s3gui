@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:minio/models.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:s3gui/utils/utils.dart';
@@ -286,12 +287,19 @@ class _ObjectsPageState extends State<ObjectsPage>
             await _s3.deleteObject(widget.bucket, widget.prefix,
                 normalizePath(object.key!, widget.prefix));
             await _s3.listObjects(widget.bucket, widget.prefix);
+          } else if (item == 2) {
+            final url = await _s3.getObjectURL(widget.bucket, object.key!);
+            await Clipboard.setData(ClipboardData(text: url));
           }
         },
         itemBuilder: (BuildContext context) => [
           const PopupMenuItem(
             value: 1,
             child: Text('Delete'),
+          ),
+          const PopupMenuItem(
+            value: 2,
+            child: Text('Copy Downlaod RURL'),
           ),
         ],
       ),

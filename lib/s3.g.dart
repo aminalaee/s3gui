@@ -76,6 +76,15 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.uploadFile(bucket, path, file, controller));
   }
 
+  late final _$getObjectURLAsyncAction =
+      AsyncAction('S3Base.getObjectURL', context: context);
+
+  @override
+  Future<String> getObjectURL(String bucket, String path) {
+    return _$getObjectURLAsyncAction
+        .run(() => super.getObjectURL(bucket, path));
+  }
+
   late final _$deleteObjectAsyncAction =
       AsyncAction('S3Base.deleteObject', context: context);
 
