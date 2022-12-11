@@ -47,6 +47,11 @@ abstract class S3Base with Store {
   }
 
   @action
+  Future<String> getObjectURL(String bucket, String path) async {
+    return await Client().c.presignedGetObject(bucket, path);
+  }
+
+  @action
   Future<void> deleteObject(String bucket, String prefix, String key) async {
     final path = '$prefix$key';
     await Client().c.removeObject(bucket, path);
