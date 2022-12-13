@@ -1,3 +1,3 @@
 # S3 GUI
 
-A Desktop and Mobile client for S3.
+A Desktop, Mobile and Web client for S3.
