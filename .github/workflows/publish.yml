@@ -22,13 +22,18 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk
       - run: flutter build appbundle
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: android
           path: build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v3
+        with:
+          name: android_bundle
+          path: build/app/outputs/bundle/release/app.aab
 
   web:
     runs-on: "ubuntu-latest"
+    name: "Publish Web"
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
@@ -36,6 +41,10 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
       - run: flutter build web
+      - uses: actions/upload-artifact@v3
+        with:
+          name: web
+          path: build/web/
 
   linux:
     name: "Publish Linux"
@@ -49,25 +58,14 @@ jobs:
       - run: flutter config --enable-linux-desktop
       - run: flutter pub get
       - run: flutter build linux
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: linux_x64
           path: build/linux/x64/release/bundle/
 
-  macos:
-    name: "Publish macOS"
-    runs-on: "macos-latest"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - run: flutter config --enable-macos-desktop
-      - run: flutter pub get
-      - run: flutter build macos
-
   windows:
     runs-on: windows-latest
+    name: "Publish Windows"
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
@@ -76,7 +74,7 @@ jobs:
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
       - run: flutter build windows
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: windows_64
           path: build/windows/runner/Release/
