@@ -24,18 +24,35 @@ mixin _$S3 on S3Base, Store {
     });
   }
 
-  late final _$objectsAtom = Atom(name: 'S3Base.objects', context: context);
+  late final _$objectsResultAtom =
+      Atom(name: 'S3Base.objectsResult', context: context);
 
   @override
-  Stream<ListObjectsResult> get objects {
-    _$objectsAtom.reportRead();
-    return super.objects;
+  ListObjectsResult? get objectsResult {
+    _$objectsResultAtom.reportRead();
+    return super.objectsResult;
   }
 
   @override
-  set objects(Stream<ListObjectsResult> value) {
-    _$objectsAtom.reportWrite(value, super.objects, () {
-      super.objects = value;
+  set objectsResult(ListObjectsResult? value) {
+    _$objectsResultAtom.reportWrite(value, super.objectsResult, () {
+      super.objectsResult = value;
+    });
+  }
+
+  late final _$loadingObjectsAtom =
+      Atom(name: 'S3Base.loadingObjects', context: context);
+
+  @override
+  bool get loadingObjects {
+    _$loadingObjectsAtom.reportRead();
+    return super.loadingObjects;
+  }
+
+  @override
+  set loadingObjects(bool value) {
+    _$loadingObjectsAtom.reportWrite(value, super.loadingObjects, () {
+      super.loadingObjects = value;
     });
   }
 
@@ -60,6 +77,22 @@ mixin _$S3 on S3Base, Store {
   @override
   Future<void> listBuckets() {
     return _$listBucketsAsyncAction.run(() => super.listBuckets());
+  }
+
+  late final _$createBucketAsyncAction =
+      AsyncAction('S3Base.createBucket', context: context);
+
+  @override
+  Future<void> createBucket(String bucket) {
+    return _$createBucketAsyncAction.run(() => super.createBucket(bucket));
+  }
+
+  late final _$deleteBucketAsyncAction =
+      AsyncAction('S3Base.deleteBucket', context: context);
+
+  @override
+  Future<void> deleteBucket(String bucket) {
+    return _$deleteBucketAsyncAction.run(() => super.deleteBucket(bucket));
   }
 
   late final _$listObjectsAsyncAction =
@@ -136,7 +169,8 @@ mixin _$S3 on S3Base, Store {
   String toString() {
     return '''
 buckets: ${buckets},
-objects: ${objects},
+objectsResult: ${objectsResult},
+loadingObjects: ${loadingObjects},
 error: ${error}
     ''';
   }

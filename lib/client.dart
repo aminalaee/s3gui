@@ -17,11 +17,21 @@ class Client {
     final endpoint = await storage.read(key: s3EndpointURLTag);
     final accessKey = await storage.read(key: s3AccessKeyTag);
     final secretKey = await storage.read(key: s3SecretKeyTag);
+    final region = await storage.read(key: s3RegionTag);
+    final useSSLStr = await storage.read(key: s3UseSSLTag);
+    final portStr = await storage.read(key: s3PortTag);
+    final useSSL = useSSLStr != 'false';
+    final port = portStr != null && portStr.isNotEmpty
+        ? int.tryParse(portStr)
+        : null;
     c = Minio(
       endPoint: endpoint!,
       accessKey: accessKey!,
       secretKey: secretKey!,
-      useSSL: true,
+      useSSL: useSSL,
+      region: region != null && region.isNotEmpty ? region : null,
+      port: port,
+      enableTrace: true,
     );
   }
 }

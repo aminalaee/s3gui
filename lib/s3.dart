@@ -13,7 +13,10 @@ abstract class S3Base with Store {
   List<Bucket> buckets = [];
 
   @observable
-  Stream<ListObjectsResult> objects = const Stream.empty();
+  ListObjectsResult? objectsResult;
+
+  @observable
+  bool loadingObjects = false;
 
   @observable
   String? error;
@@ -34,11 +37,53 @@ abstract class S3Base with Store {
   }
 
   @action
+  Future<void> createBucket(String bucket) async {
+    try {
+      error = null;
+      await Client().c.makeBucket(bucket);
+    } catch (e) {
+      error = 'Failed to create bucket: $e';
+    }
+  }
+
+  @action
+  Future<void> deleteBucket(String bucket) async {
+    try {
+      error = null;
+      await Client().c.removeBucket(bucket);
+    } catch (e) {
+      error = 'Failed to delete bucket: $e';
+    }
+  }
+
+  Future<ListObjectsResult> _collectStream(
+      Stream<ListObjectsResult> stream) async {
+    final allPrefixes = <String>[];
+    final allObjects = <Object>[];
+    await for (final result in stream) {
+      allPrefixes.addAll(result.prefixes);
+      allObjects.addAll(result.objects);
+    }
+    return ListObjectsResult(objects: allObjects, prefixes: allPrefixes);
+  }
+
+  @action
   Future<void> listObjects(String bucket, String prefix) async {
     try {
       error = null;
-      objects = Client().c.listObjects(bucket, prefix: prefix);
+      loadingObjects = true;
+      objectsResult = null;
+      try {
+        objectsResult = await _collectStream(
+            Client().c.listObjectsV2(bucket, prefix: prefix));
+      } catch (_) {
+        // Fall back to v1 if v2 is not supported
+        objectsResult = await _collectStream(
+            Client().c.listObjects(bucket, prefix: prefix));
+      }
+      loadingObjects = false;
     } catch (e) {
+      loadingObjects = false;
       error = 'Failed to list objects: $e';
     }
   }
@@ -110,7 +155,7 @@ abstract class S3Base with Store {
   }
 
   Future<void> _removeDirectory(String bucket, String prefix) async {
-    final objs = Client().c.listObjects(bucket, prefix: prefix);
+    final objs = Client().c.listObjectsV2(bucket, prefix: prefix);
     await for (final objResult in objs) {
       for (final obj in objResult.objects) {
         await Client().c.removeObject(bucket, obj.key!);

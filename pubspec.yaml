@@ -19,6 +19,8 @@ dependencies:
   timeago: ^3.7.0
   file_picker: ^8.0.0
   flutter_secure_storage: ^10.0.0
+  url_launcher: ^6.3.2
+  desktop_drop: ^0.7.0
 
 dev_dependencies:
   flutter_test:
