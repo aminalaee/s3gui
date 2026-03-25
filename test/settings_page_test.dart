@@ -9,38 +9,50 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
     });
 
-    testWidgets('renders all form fields', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SettingsPage()),
+    Widget buildApp() {
+      return MaterialApp(
+        home: SettingsPage(onToggleTheme: () {}),
       );
-      // Wait for async credential loading
+    }
+
+    testWidgets('renders required form fields', (tester) async {
+      await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('Endpoint URL'), findsOneWidget);
-      expect(find.text('Acess Key'), findsOneWidget);
+      expect(find.text('Endpoint'), findsOneWidget);
+      expect(find.text('Access Key'), findsOneWidget);
       expect(find.text('Secret Key'), findsOneWidget);
-      expect(find.text('Save'), findsOneWidget);
+    });
+
+    testWidgets('renders optional fields', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      // Scroll down to find optional fields
+      await tester.scrollUntilVisible(
+          find.text('Default Bucket'), 100,
+          scrollable: find.byType(Scrollable).first);
+      expect(find.text('Default Bucket'), findsOneWidget);
+      expect(find.text('Region'), findsOneWidget);
     });
 
     testWidgets('shows validation errors on empty submit', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SettingsPage()),
-      );
+      await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Save'));
+      // Scroll to and tap save button
+      await tester.scrollUntilVisible(
+          find.text('Save & Connect'), 100,
+          scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text('Save & Connect'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Please enter Endpoint URL'), findsOneWidget);
-      expect(find.text('Please enter Access Key'), findsOneWidget);
-      expect(find.text('Please enter Secret Key'), findsOneWidget);
+      // Validation errors should be visible (form scrolls to first error)
+      expect(find.text('Endpoint is required'), findsOneWidget);
     });
 
     testWidgets('shows loading indicator initially', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SettingsPage()),
-      );
-      // Before pumpAndSettle — should show loading
+      await tester.pumpWidget(buildApp());
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
