@@ -1,6 +1,6 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:minio/minio.dart';
 import 'package:s3gui/const.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Client {
   static final Client _client = Client._internal();
@@ -12,14 +12,15 @@ class Client {
     return _client;
   }
 
-  void init(SharedPreferences sharedPreferences) {
-    final endpoint = sharedPreferences.getString(s3EndpointURLTag)!;
-    final accessKey = sharedPreferences.getString(s3AccessKeyTag)!;
-    final secretKey = sharedPreferences.getString(s3SecretKeyTag)!;
+  Future<void> init() async {
+    const storage = FlutterSecureStorage();
+    final endpoint = await storage.read(key: s3EndpointURLTag);
+    final accessKey = await storage.read(key: s3AccessKeyTag);
+    final secretKey = await storage.read(key: s3SecretKeyTag);
     c = Minio(
-      endPoint: endpoint,
-      accessKey: accessKey,
-      secretKey: secretKey,
+      endPoint: endpoint!,
+      accessKey: accessKey!,
+      secretKey: secretKey!,
       useSSL: true,
     );
   }
