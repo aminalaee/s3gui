@@ -39,6 +39,21 @@ mixin _$S3 on S3Base, Store {
     });
   }
 
+  late final _$errorAtom = Atom(name: 'S3Base.error', context: context);
+
+  @override
+  String? get error {
+    _$errorAtom.reportRead();
+    return super.error;
+  }
+
+  @override
+  set error(String? value) {
+    _$errorAtom.reportWrite(value, super.error, () {
+      super.error = value;
+    });
+  }
+
   late final _$listBucketsAsyncAction =
       AsyncAction('S3Base.listBuckets', context: context);
 
@@ -80,7 +95,7 @@ mixin _$S3 on S3Base, Store {
       AsyncAction('S3Base.getObjectURL', context: context);
 
   @override
-  Future<String> getObjectURL(String bucket, String path) {
+  Future<String?> getObjectURL(String bucket, String path) {
     return _$getObjectURLAsyncAction
         .run(() => super.getObjectURL(bucket, path));
   }
@@ -103,11 +118,26 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.deleteDirectory(bucket, prefix, key));
   }
 
+  late final _$S3BaseActionController =
+      ActionController(name: 'S3Base', context: context);
+
+  @override
+  void clearError() {
+    final _$actionInfo =
+        _$S3BaseActionController.startAction(name: 'S3Base.clearError');
+    try {
+      return super.clearError();
+    } finally {
+      _$S3BaseActionController.endAction(_$actionInfo);
+    }
+  }
+
   @override
   String toString() {
     return '''
 buckets: ${buckets},
-objects: ${objects}
+objects: ${objects},
+error: ${error}
     ''';
   }
 }
