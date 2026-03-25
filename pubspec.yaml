@@ -17,8 +17,8 @@ dependencies:
   mobx: ^2.4.0
   flutter_mobx: ^2.2.1
   timeago: ^3.7.0
-  shared_preferences: ^2.3.0
   file_picker: ^8.0.0
+  flutter_secure_storage: ^10.0.0
 
 dev_dependencies:
   flutter_test:

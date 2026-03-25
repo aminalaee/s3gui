@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:s3gui/pages/home.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:s3gui/const.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.sharedPreferences});
-
-  final SharedPreferences sharedPreferences;
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -14,9 +12,27 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final _formKey = GlobalKey<FormState>();
+  final _storage = const FlutterSecureStorage();
   final endpointUrlController = TextEditingController();
   final accessKeyController = TextEditingController();
   final secretKeyController = TextEditingController();
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCredentials();
+  }
+
+  Future<void> _loadCredentials() async {
+    final endpoint = await _storage.read(key: s3EndpointURLTag);
+    final accessKey = await _storage.read(key: s3AccessKeyTag);
+    final secretKey = await _storage.read(key: s3SecretKeyTag);
+    endpointUrlController.text = endpoint ?? '';
+    accessKeyController.text = accessKey ?? '';
+    secretKeyController.text = secretKey ?? '';
+    setState(() => _loaded = true);
+  }
 
   @override
   void dispose() {
@@ -28,12 +44,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final s3EndpointURL = widget.sharedPreferences.getString(s3EndpointURLTag);
-    endpointUrlController.text = s3EndpointURL ?? '';
-    final s3AccessKey = widget.sharedPreferences.getString(s3AccessKeyTag);
-    accessKeyController.text = s3AccessKey ?? '';
-    final s3SecretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
-    secretKeyController.text = s3SecretKey ?? '';
+    if (!_loaded) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Settings')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final navigator = Navigator.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -75,6 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: secretKeyController,
+                obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Secret Key',
                   enabledBorder: UnderlineInputBorder(),
@@ -93,17 +110,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text('Saving...'),
                         duration: Duration(seconds: 1)));
-                    await widget.sharedPreferences.setString(
-                        s3EndpointURLTag, endpointUrlController.text);
-                    await widget.sharedPreferences
-                        .setString(s3AccessKeyTag, accessKeyController.text);
-                    await widget.sharedPreferences
-                        .setString(s3SecretKeyTag, secretKeyController.text);
+                    await _storage.write(
+                        key: s3EndpointURLTag,
+                        value: endpointUrlController.text);
+                    await _storage.write(
+                        key: s3AccessKeyTag,
+                        value: accessKeyController.text);
+                    await _storage.write(
+                        key: s3SecretKeyTag,
+                        value: secretKeyController.text);
                     navigator.pushAndRemoveUntil<void>(
                       MaterialPageRoute<void>(
-                          builder: (BuildContext context) => HomePage(
-                                sharedPreferences: widget.sharedPreferences,
-                              )),
+                          builder: (BuildContext context) => const HomePage()),
                       (Route<dynamic> route) => false,
                     );
                   }

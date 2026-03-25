@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:s3gui/pages/settings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:s3gui/pages/objects.dart';
 import 'package:s3gui/client.dart';
 import 'package:s3gui/s3.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.sharedPreferences});
-
-  final SharedPreferences sharedPreferences;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,9 +17,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    Client().init(widget.sharedPreferences);
-    _s3.listBuckets().then((_) => _showErrorIfAny());
     super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await Client().init();
+    await _s3.listBuckets();
+    _showErrorIfAny();
   }
 
   void _showErrorIfAny() {
@@ -50,8 +52,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      SettingsPage(sharedPreferences: widget.sharedPreferences),
+                  builder: (context) => const SettingsPage(),
                 ),
               );
             },
