@@ -21,8 +21,20 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     Client().init(widget.sharedPreferences);
-    _s3.listBuckets();
+    _s3.listBuckets().then((_) => _showErrorIfAny());
     super.initState();
+  }
+
+  void _showErrorIfAny() {
+    if (_s3.error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_s3.error!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _s3.clearError();
+    }
   }
 
   @override

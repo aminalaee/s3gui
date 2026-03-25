@@ -43,6 +43,18 @@ class _ObjectsPageState extends State<ObjectsPage>
     super.dispose();
   }
 
+  void _showErrorIfAny() {
+    if (_s3.error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_s3.error!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _s3.clearError();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +109,15 @@ class _ObjectsPageState extends State<ObjectsPage>
               builder: (_) => StreamBuilder(
                 stream: _s3.objects,
                 builder: ((_, snapshot) {
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Error loading objects: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
                   if (snapshot.hasData) {
                     return buildTable(snapshot.data!);
                   }
@@ -269,8 +290,14 @@ class _ObjectsPageState extends State<ObjectsPage>
           onPressed: () async {
             await _s3.createNewDirectory(
                 widget.bucket, widget.prefix, _newDirectoryController.text);
-            await _s3.listObjects(widget.bucket, widget.prefix);
-            Navigator.of(context).pop();
+            if (_s3.error != null) {
+              _showErrorIfAny();
+            } else {
+              await _s3.listObjects(widget.bucket, widget.prefix);
+            }
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
             _newDirectoryController.clear();
           },
         ),
@@ -286,10 +313,14 @@ class _ObjectsPageState extends State<ObjectsPage>
           if (item == 1) {
             await _s3.deleteObject(widget.bucket, widget.prefix,
                 normalizePath(object.key!, widget.prefix));
+            _showErrorIfAny();
             await _s3.listObjects(widget.bucket, widget.prefix);
           } else if (item == 2) {
             final url = await _s3.getObjectURL(widget.bucket, object.key!);
-            await Clipboard.setData(ClipboardData(text: url));
+            if (url != null) {
+              await Clipboard.setData(ClipboardData(text: url));
+            }
+            _showErrorIfAny();
           }
         },
         itemBuilder: (BuildContext context) => [
@@ -314,6 +345,7 @@ class _ObjectsPageState extends State<ObjectsPage>
           if (item == 1) {
             await _s3.deleteDirectory(widget.bucket, widget.prefix,
                 normalizePath(prefix, widget.prefix));
+            _showErrorIfAny();
             await _s3.listObjects(widget.bucket, widget.prefix);
           }
         },
@@ -354,6 +386,10 @@ class _ObjectsPageState extends State<ObjectsPage>
       for (var file in pick.files) {
         final path = widget.prefix + file.name;
         await _s3.uploadFile(widget.bucket, path, file, _progressController);
+        if (_s3.error != null) {
+          _showErrorIfAny();
+          return;
+        }
         await _s3.listObjects(widget.bucket, widget.prefix);
       }
     }
