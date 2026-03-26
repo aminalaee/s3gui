@@ -163,6 +163,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       if (trimmed.contains('/')) {
                         return 'Enter hostname only, without path';
                       }
+                      if (trimmed.contains(':')) {
+                        return 'Enter hostname only — use the Port field for the port number';
+                      }
                       return null;
                     },
                   ),

@@ -225,7 +225,7 @@ class _HomePageState extends State<HomePage> {
         ),
         title: Text(bucket.name,
             style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: dateStr != null ? Text('Created $dateStr') : null,
+        subtitle: dateStr != null ? Text('Created at $dateStr') : null,
         trailing: IconButton(
           icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
           tooltip: 'Delete bucket',
