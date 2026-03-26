@@ -56,6 +56,37 @@ mixin _$S3 on S3Base, Store {
     });
   }
 
+  late final _$loadingMoreAtom =
+      Atom(name: 'S3Base.loadingMore', context: context);
+
+  @override
+  bool get loadingMore {
+    _$loadingMoreAtom.reportRead();
+    return super.loadingMore;
+  }
+
+  @override
+  set loadingMore(bool value) {
+    _$loadingMoreAtom.reportWrite(value, super.loadingMore, () {
+      super.loadingMore = value;
+    });
+  }
+
+  late final _$hasMoreAtom = Atom(name: 'S3Base.hasMore', context: context);
+
+  @override
+  bool get hasMore {
+    _$hasMoreAtom.reportRead();
+    return super.hasMore;
+  }
+
+  @override
+  set hasMore(bool value) {
+    _$hasMoreAtom.reportWrite(value, super.hasMore, () {
+      super.hasMore = value;
+    });
+  }
+
   late final _$errorAtom = Atom(name: 'S3Base.error', context: context);
 
   @override
@@ -102,6 +133,14 @@ mixin _$S3 on S3Base, Store {
   Future<void> listObjects(String bucket, String prefix) {
     return _$listObjectsAsyncAction
         .run(() => super.listObjects(bucket, prefix));
+  }
+
+  late final _$loadMoreAsyncAction =
+      AsyncAction('S3Base.loadMore', context: context);
+
+  @override
+  Future<void> loadMore() {
+    return _$loadMoreAsyncAction.run(() => super.loadMore());
   }
 
   late final _$createNewDirectoryAsyncAction =
@@ -171,6 +210,8 @@ mixin _$S3 on S3Base, Store {
 buckets: ${buckets},
 objectsResult: ${objectsResult},
 loadingObjects: ${loadingObjects},
+loadingMore: ${loadingMore},
+hasMore: ${hasMore},
 error: ${error}
     ''';
   }

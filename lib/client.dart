@@ -21,11 +21,18 @@ class Client {
     final useSSLStr = await storage.read(key: s3UseSSLTag);
     final portStr = await storage.read(key: s3PortTag);
     final useSSL = useSSLStr != 'false';
-    final port = portStr != null && portStr.isNotEmpty
+    var host = endpoint!;
+    var port = portStr != null && portStr.isNotEmpty
         ? int.tryParse(portStr)
         : null;
+    // Handle endpoint entered as "host:port"
+    if (host.contains(':')) {
+      final parts = host.split(':');
+      host = parts[0];
+      port ??= int.tryParse(parts[1]);
+    }
     c = Minio(
-      endPoint: endpoint!,
+      endPoint: host,
       accessKey: accessKey!,
       secretKey: secretKey!,
       useSSL: useSSL,

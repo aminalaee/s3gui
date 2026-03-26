@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:s3gui/utils/utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:s3gui/pages/home.dart';
 import 'package:s3gui/pages/settings.dart';
 import 'package:s3gui/s3.dart';
 import 'package:s3gui/utils/filesize.dart';
@@ -334,8 +335,17 @@ class _ObjectsPageState extends State<ObjectsPage>
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
         children: [
-          Icon(Icons.inventory_2_outlined,
-              size: 18, color: theme.colorScheme.primary),
+          InkWell(
+            onTap: () => Navigator.of(context).pushAndRemoveUntil<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => HomePage(onToggleTheme: widget.onToggleTheme),
+              ),
+              (route) => false,
+            ),
+            borderRadius: BorderRadius.circular(4),
+            child: Icon(Icons.inventory_2_outlined,
+                size: 18, color: theme.colorScheme.primary),
+          ),
           const SizedBox(width: 8),
           InkWell(
             onTap: () => _navigateToPrefix(''),
@@ -431,18 +441,45 @@ class _ObjectsPageState extends State<ObjectsPage>
       );
     }
 
-    return ListView.separated(
-      key: ValueKey('list-$_currentPrefix'),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      itemCount: totalItems,
-      separatorBuilder: (_, __) => const SizedBox(height: 2),
-      itemBuilder: (_, i) {
-        if (i < filteredPrefixes.length) {
-          return _buildPrefixCard(filteredPrefixes[i], theme);
+    final showLoadMore = _s3.hasMore && _searchQuery.isEmpty;
+    final listCount = totalItems + (showLoadMore ? 1 : 0);
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (showLoadMore &&
+            !_s3.loadingMore &&
+            notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 200) {
+          _s3.loadMore();
         }
-        return _buildObjectCard(
-            filteredObjects[i - filteredPrefixes.length], theme);
+        return false;
       },
+      child: ListView.separated(
+        key: ValueKey('list-$_currentPrefix'),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        itemCount: listCount,
+        separatorBuilder: (_, __) => const SizedBox(height: 2),
+        itemBuilder: (_, i) {
+          if (i < filteredPrefixes.length) {
+            return _buildPrefixCard(filteredPrefixes[i], theme);
+          }
+          if (i < totalItems) {
+            return _buildObjectCard(
+                filteredObjects[i - filteredPrefixes.length], theme);
+          }
+          // Loading indicator row
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 

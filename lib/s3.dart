@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:minio/models.dart';
@@ -19,7 +21,15 @@ abstract class S3Base with Store {
   bool loadingObjects = false;
 
   @observable
+  bool loadingMore = false;
+
+  @observable
+  bool hasMore = false;
+
+  @observable
   String? error;
+
+  StreamIterator<ListObjectsResult>? _streamIterator;
 
   @action
   void clearError() {
@@ -56,15 +66,23 @@ abstract class S3Base with Store {
     }
   }
 
-  Future<ListObjectsResult> _collectStream(
-      Stream<ListObjectsResult> stream) async {
-    final allPrefixes = <String>[];
-    final allObjects = <Object>[];
-    await for (final result in stream) {
-      allPrefixes.addAll(result.prefixes);
-      allObjects.addAll(result.objects);
+  Future<bool> _fetchNextPage() async {
+    if (_streamIterator == null) return false;
+    final hasNext = await _streamIterator!.moveNext();
+    if (!hasNext) {
+      hasMore = false;
+      await _streamIterator!.cancel();
+      _streamIterator = null;
+      return false;
     }
-    return ListObjectsResult(objects: allObjects, prefixes: allPrefixes);
+    final result = _streamIterator!.current;
+    final prevPrefixes = objectsResult?.prefixes ?? [];
+    final prevObjects = objectsResult?.objects ?? [];
+    objectsResult = ListObjectsResult(
+      objects: [...prevObjects, ...result.objects],
+      prefixes: [...prevPrefixes, ...result.prefixes],
+    );
+    return true;
   }
 
   @action
@@ -73,18 +91,38 @@ abstract class S3Base with Store {
       error = null;
       loadingObjects = true;
       objectsResult = null;
+      hasMore = false;
+      await _streamIterator?.cancel();
+      Stream<ListObjectsResult> stream;
       try {
-        objectsResult = await _collectStream(
-            Client().c.listObjectsV2(bucket, prefix: prefix));
+        stream = Client().c.listObjectsV2(bucket, prefix: prefix);
       } catch (_) {
-        // Fall back to v1 if v2 is not supported
-        objectsResult = await _collectStream(
-            Client().c.listObjects(bucket, prefix: prefix));
+        stream = Client().c.listObjects(bucket, prefix: prefix);
+      }
+      _streamIterator = StreamIterator(stream);
+      final gotFirst = await _fetchNextPage();
+      if (gotFirst) {
+        // Try fetching a second page to determine if there's more
+        hasMore = await _fetchNextPage();
       }
       loadingObjects = false;
     } catch (e) {
       loadingObjects = false;
       error = 'Failed to list objects: $e';
+    }
+  }
+
+  @action
+  Future<void> loadMore() async {
+    if (!hasMore || loadingMore) return;
+    try {
+      loadingMore = true;
+      final hasNext = await _fetchNextPage();
+      hasMore = hasNext;
+      loadingMore = false;
+    } catch (e) {
+      loadingMore = false;
+      error = 'Failed to load more objects: $e';
     }
   }
 
